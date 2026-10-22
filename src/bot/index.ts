@@ -105,7 +105,7 @@ export async function createBot(events: BrainEvents, roleConfig: BotRoleConfig =
     host: config.mc.host,
     port: config.mc.port,
     username: roleConfig.username,
-    version: config.mc.version,
+    version: config.mc.protocolVersion,
     auth: config.mc.auth,
     checkTimeoutInterval: 120_000,
   });
@@ -844,7 +844,7 @@ export async function createBot(events: BrainEvents, roleConfig: BotRoleConfig =
       (bot as unknown as { physicsEnabled: boolean }).physicsEnabled = true;
       console.log(`[Respawn] ${roleConfig.name} chunk wait failed: ${(e as Error).message}`);
     }
-    if (roleConfig.username === "Atlas") {
+    if (roleConfig.username === "Atlas" && config.bot.allowInterventions) {
       bot.chat("/gamerule keepInventory true");
       await new Promise((r) => setTimeout(r, 500));
       bot.chat("/gamerule doMobSpawning true");
