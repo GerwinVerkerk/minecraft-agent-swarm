@@ -110,6 +110,10 @@ export async function createBot(events: BrainEvents, roleConfig: BotRoleConfig =
     checkTimeoutInterval: 120_000,
   });
 
+  bot.once("spawn", () => {
+    console.log(`[Bot] ${roleConfig.username} spawned: client ${bot.version}, protocol ${bot.registry.version.version}; configured server ${config.mc.version}`);
+  });
+
   registerBotMemory(bot, memStore);
 
   // Base height, for the furniture placement guard. Bots were placing chests and

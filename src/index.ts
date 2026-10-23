@@ -68,7 +68,7 @@ async function startBot(
   const endpoint = config.llm.provider === "openai" ? config.openai.baseUrl : config.ollama.host;
   console.log(`LLM: ${config.llm.model}${fastLabel} @ ${endpoint} [${config.llm.provider}]`);
   console.log(
-    `Server: ${config.mc.host}:${config.mc.port} (MC ${config.mc.version}, client protocol ${config.mc.protocolVersion})`,
+    `Server: ${config.mc.host}:${config.mc.port} (MC ${config.mc.version}, client ${config.mc.protocolVersion}, ${config.mc.version === "26.3" && config.mc.protocolVersion === "26.1" ? "ViaBackwards bridge" : "native protocol"})`,
   );
   console.log(`Idle re-plan interval: ${config.bot.idleIntervalMs}ms`);
   console.log("");

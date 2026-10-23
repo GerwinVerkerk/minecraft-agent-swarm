@@ -1,7 +1,14 @@
 import minecraftData from "minecraft-data";
 import minecraftProtocol from "minecraft-protocol";
+import mineflayer from "mineflayer";
 
-/** The bot speaks a client protocol, which may differ from the Paper server version. */
+export function parseViaBackwards(value?: string): boolean {
+  if (value === undefined || value === "" || value === "false") return false;
+  if (value === "true") return true;
+  throw new Error("MC_VIABACKWARDS must be unset, false or true.");
+}
+
+/** The bot speaks a client protocol, which may differ only in explicit bridge mode. */
 export function resolveMinecraftProtocolVersion(
   serverVersion: string,
   protocolVersion?: string,
@@ -9,16 +16,18 @@ export function resolveMinecraftProtocolVersion(
 ): string {
   const clientVersion = protocolVersion || serverVersion;
   if (serverVersion === "26.3") {
-    if (clientVersion !== "26.1" || !viaBackwards) {
+    if (viaBackwards && clientVersion !== "26.1") {
       throw new Error(
-        "Paper 26.3 is not yet natively supported by minecraft-data/minecraft-protocol. " +
-          "Use a separate Paper 26.3 test server with ViaVersion + ViaBackwards, " +
-          "and set MC_PROTOCOL_VERSION=26.1 and MC_VIABACKWARDS=true. " +
-          "Do not set MC_VERSION=26.1 to disguise a 26.3 server.",
+        "MC_VIABACKWARDS=true requires MC_PROTOCOL_VERSION=26.1 for the legacy Paper 26.3 bridge.",
       );
+    }
+    if (!viaBackwards && clientVersion !== "26.3") {
+      throw new Error("Native Paper 26.3 requires MC_PROTOCOL_VERSION absent or 26.3 and MC_VIABACKWARDS=false.");
     }
   } else if (protocolVersion && protocolVersion !== serverVersion) {
     throw new Error("MC_PROTOCOL_VERSION may differ from MC_VERSION only for the documented Paper 26.3 bridge.");
+  } else if (viaBackwards) {
+    throw new Error("MC_VIABACKWARDS=true is only valid for the Paper 26.3 bridge.");
   }
 
   if (!minecraftProtocol.supportedVersions.includes(clientVersion) || !minecraftData(clientVersion)) {
@@ -28,6 +37,13 @@ export function resolveMinecraftProtocolVersion(
   }
   if (serverVersion === "26.3" && !minecraftData(clientVersion)?.supportFeature("sendsClientTickEndPacket")) {
     throw new Error("The selected client protocol cannot send client_tick_end, required by Paper 26.3.");
+  }
+  if (serverVersion === "26.3" && !viaBackwards) {
+    const data = minecraftData("26.3");
+    if (data?.version?.version !== 777 || data?.version?.dataVersion !== 5023 || !data?.protocol ||
+        !mineflayer.testedVersions.includes("26.3")) {
+      throw new Error("Native Minecraft 26.3 requires Mineflayer support, protocol 777 and data version 5023 with packet schemas.");
+    }
   }
   return clientVersion;
 }

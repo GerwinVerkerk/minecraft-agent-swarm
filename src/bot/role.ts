@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 /**
  * Static role definitions for every bot in the swarm.
  *
@@ -78,7 +80,17 @@ export interface BotRoleConfig {
  * agrees where "The Stash" is. setup_stash ground-snaps the Y at runtime,
  * so this Y only needs to be close enough for pathfinding.
  */
-export const STASH_POS = { x: 286, y: 70, z: -314 };
+export function worldPosition(value: string | undefined, fallback: { x: number; y: number; z: number }, key: string) {
+  if (!value) return fallback;
+  const fields = value.split(",").map((part) => part.trim());
+  const parts = fields.map(Number);
+  if (fields.length !== 3 || fields.some((part) => !part) || parts.some((part) => !Number.isSafeInteger(part))) {
+    throw new Error(`${key} must contain three integer coordinates: x,y,z`);
+  }
+  return { x: parts[0], y: parts[1], z: parts[2] };
+}
+
+export const STASH_POS = worldPosition(process.env.SWARM_STASH_POS, { x: 286, y: 70, z: -314 }, "SWARM_STASH_POS");
 
 /**
  * The farm site — the open waterline BELOW the village where build_farm's
@@ -89,10 +101,10 @@ export const STASH_POS = { x: 286, y: 70, z: -314 };
  * died at "Couldn't reach the farm site" while the real field sat 15 blocks
  * away.
  */
-export const FARM_SITE = { x: 302, y: 58, z: -307 };
+export const FARM_SITE = worldPosition(process.env.SWARM_FARM_SITE, { x: 302, y: 58, z: -307 }, "SWARM_FARM_SITE");
 
 /** Renewable tree farm east of the village (saplings + torches, RCON-provisioned). */
-export const TREE_FARM = { x: 306, y: 71, z: -316 };
+export const TREE_FARM = worldPosition(process.env.SWARM_TREE_FARM, { x: 306, y: 71, z: -316 }, "SWARM_TREE_FARM");
 
 /** Atlas: Explorer and miner. Roams widely, finds ores, scouts terrain. */
 export const ATLAS_CONFIG: BotRoleConfig = {
