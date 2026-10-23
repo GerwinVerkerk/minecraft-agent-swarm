@@ -294,9 +294,21 @@ The bots will:
 
 > **Survival mode:** Leave `ALLOW_INTERVENTIONS=false` (the default) and do not give bot accounts OP. This disables the existing gamerule, teleport, effect, and `/give` intervention paths. The preconfigured role locations and some task heuristics still reflect the original author's world; adapt them to your isolated world before expecting fully autonomous survival progression. `ALLOW_INTERVENTIONS=true` is a cheat-enabled demo mode and requires operator permissions for those commands.
 
-### Paper 26.3 compatibility (experimental bridge)
+### Paper 26.3 native compatibility (experimental)
 
-As of October 2026, published PrismarineJS protocol/data packages expose client protocol 26.1, **not native 26.3**. The pinned Mineflayer upstream commit includes [the `client_tick_end` fix](https://github.com/PrismarineJS/mineflayer/pull/4137) missing from npm 4.39.0; no extra packet patch is installed here. On an **isolated Paper 26.3 test server**, install matching ViaVersion and ViaBackwards releases that accept a 26.1 client, then set:
+Set `MC_VERSION=26.3` to use **native client protocol 777** with the pinned
+PrismarineJS 26.3 data/protocol snapshots. Leave `MC_PROTOCOL_VERSION` unset
+(or set it to `26.3`) and leave `MC_VIABACKWARDS` unset or `false`. No protocol
+translator belongs on the isolated test server. These snapshots are temporary;
+see [the native Paper test procedure](docs/paper-26.3-native-test.md) and
+[observed results](docs/paper-26.3-native-results.md) for exact SHAs, packet
+checks, non-OP survival status and WSL2 instructions. Native
+support is not a claim that autonomous five-bot survival or AI collaboration
+has passed end-to-end acceptance.
+
+### Paper 26.3 compatibility (optional experimental bridge)
+
+The separate bridge path from PR #35 remains available. On an **isolated Paper 26.3 test server**, install matching ViaVersion and ViaBackwards releases that accept a 26.1 client, then set:
 
 ```env
 MC_VERSION=26.3
@@ -305,15 +317,15 @@ MC_VIABACKWARDS=true
 ALLOW_INTERVENTIONS=false
 ```
 
-`MC_VERSION` describes the server, while Mineflayer sends the explicitly selected 26.1 client protocol. Startup fails if the bridge is omitted or the installed protocol/data dependencies cannot support that client version. This does not prove that 26.3-specific blocks, recipes, entities, or mechanics work; translation and real-server survival behavior require separate tests. Keep this bridge off production until those tests pass. Native 26.3 should replace the bridge when upstream PrismarineJS supports it.
+`MC_VERSION` describes the server, while Mineflayer sends the explicitly selected 26.1 client protocol. Both bridge settings are required. The bridge does not prove 26.3-specific blocks, recipes, entities, or mechanics work; translation and real-server survival behavior require separate tests. Keep this bridge off production until those tests pass.
 
 See [the isolated Paper 26.3 test procedure](docs/paper-26.3-test.md) for pinned downloads, single-bot and five-bot protocol smokes, and the separate manual survival acceptance sequence.
 
-For Ubuntu/WSL2, use Node.js 22, `npm ci`, and `python3 neural_server.py` for the optional standard-library combat policy. Use a separate Paper world in offline mode only on a loopback-restricted test server, or use distinct Microsoft-authenticated bot accounts for an online-mode server. Begin with `ENABLE_MULTI_BOT=false` and `BOT_COUNT=1`; observe login, five minutes connected, walking, mining, pickup, crafting, and placing. Then set `ENABLE_MULTI_BOT=true` and `BOT_COUNT=5` and check all five identities, shared chest interactions, logs, and server console. Those Paper 26.3 steps have **not** been run for this change.
+For Ubuntu/WSL2, use Node.js 22, `npm ci`, and `python3 neural_server.py` for the optional standard-library combat policy. Use a separate Paper world in offline mode only on a loopback-restricted test server, or use distinct Microsoft-authenticated bot accounts for an online-mode server. Begin with `ENABLE_MULTI_BOT=false` and `BOT_COUNT=1`; observe login, five minutes connected, walking, mining, pickup, crafting, and placing. Then set `ENABLE_MULTI_BOT=true` and `BOT_COUNT=5` and check all five identities, shared chest interactions, logs, and server console. The bridge-mode functional steps have **not** been rerun for this native change; see the native test procedure for actual protocol results and remaining gameplay gaps.
 
 The unauthenticated Mission Control, viewer, and overlay HTTP services listen on their configured ports; keep them firewalled to the test host. `npm audit` still reports transitive findings; review them before any public deployment.
 
-> **Tip:** With `online-mode=false` you can join the world yourself — Direct Connect to `localhost:25565` with any username and watch the bots up close (`/gamemode spectator` for free-flight).
+> **Tip:** On a loopback-only offline test server you can join with a separate ordinary test username and observe the bots without giving them operator rights or changing the world mode.
 
 ### Single-Bot Mode
 
